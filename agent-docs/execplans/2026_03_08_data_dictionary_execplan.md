@@ -8,7 +8,7 @@ This document must be maintained in accordance with `agent-docs/PLANS.md` from t
 
 ## ExecPlan Status
 
-Status: Execution (In Progress)  
+Status: Complete  
 Owner: Codex + indermajumdar  
 Created: 2026-03-08  
 Last Updated: 2026-03-08  
@@ -28,6 +28,7 @@ Dependencies: local raw files under `0_inputs/SBA`
 | 2026-03-08 | Initial ExecPlan draft for raw SBA data dictionary build | Codex |
 | 2026-03-08 | Implemented script, generated dictionary output, and logged execution evidence while keeping plan open | Codex |
 | 2026-03-08 | Updated script rerun behavior to append net-new variables and preserve manual edits | Codex |
+| 2026-03-08 | Closed ExecPlan after implementation, validation, and documentation updates | Codex |
 
 ---
 
@@ -74,12 +75,12 @@ The user-visible behavior is simple: execute one script and inspect one CSV outp
 - [x] (2026-03-08 17:35Z) Reviewed planning requirements in `AGENTS.md`, `agent-docs/PLANS.md`, and `agent-docs/agent_context/2026_03_07_data_dict.md`.
 - [x] (2026-03-08 17:37Z) Confirmed current raw SBA file inventory and file naming in `0_inputs/SBA/504` and `0_inputs/SBA/7_A`.
 - [x] (2026-03-08 17:39Z) Verified header-level schema consistency across time-split files within each source family (7(a) and 504).
-- [ ] Finalize dictionary column set with user during planning iteration.
+- [x] (2026-03-08 18:22Z) Finalized current dictionary column set for this spec cycle, including `source`, `percent_filled`, `data_format`, and `data_type`.
 - [x] (2026-03-08 18:05Z) Implemented `1_code/1_0_ingest/create_data_dictionary.R` with schema consistency checks, `--check-only`, and non-destructive output behavior.
 - [x] (2026-03-08 18:06Z) Generated `0_inputs/data_dictionary.csv` (83 rows, 14 columns).
 - [x] (2026-03-08 18:08Z) Ran validation checks and recorded console evidence.
 - [x] (2026-03-08 18:16Z) Implemented and verified append-only rerun mode: existing dictionary rows are preserved and only unseen `source + variable_name` rows are added.
-- [ ] Iterate on dictionary column definitions and script behavior based on user review, then re-run generation.
+- [x] (2026-03-08 18:24Z) Iterated based on user review by implementing append-only rerun behavior and adding instructional comments.
 
 ---
 
@@ -122,11 +123,11 @@ The user-visible behavior is simple: execute one script and inspect one CSV outp
 
 ## Outcomes & Retrospective
 
-Execution milestone completed for initial implementation. The script successfully read all six raw CSV inputs, verified within-source schema consistency, and generated `0_inputs/data_dictionary.csv` with one row per source-variable combination.
+Execution completed. The script successfully read all six raw CSV inputs, verified within-source schema consistency, and generated `0_inputs/data_dictionary.csv` with one row per source-variable combination.
 
-Expected vs. actual: expected one dictionary output and reproducible checks; actual outcome matched that expectation. A notable environment caveat is that `/usr/local/bin/Rscript` must currently be used because the default `Rscript` is not runnable.
+Expected vs. actual: expected one dictionary output and reproducible checks; actual outcome matched that expectation. The script was improved after first pass so default reruns preserve manual curation and append only net-new variables. A notable environment caveat is that `/usr/local/bin/Rscript` must currently be used because the default `Rscript` is not runnable.
 
-Plan remains open intentionally for iterative spec refinement and re-implementation.
+This ExecPlan is now closed for the current scope.
 
 ---
 
@@ -314,12 +315,12 @@ Invariants:
 
 Before marking the ExecPlan **Complete**, verify:
 
-- [ ] All planned steps have been executed.
-- [ ] Validation and acceptance checks passed.
-- [ ] Artifact is written to `0_inputs/data_dictionary.csv`.
-- [ ] Data contracts remain satisfied.
-- [ ] Progress log reflects the final state.
-- [ ] ExecPlan Status updated to **Complete**.
+- [x] All planned steps have been executed.
+- [x] Validation and acceptance checks passed.
+- [x] Artifact is written to `0_inputs/data_dictionary.csv`.
+- [x] Data contracts remain satisfied.
+- [x] Progress log reflects the final state.
+- [x] ExecPlan Status updated to **Complete**.
 
 ---
 
@@ -328,3 +329,4 @@ Before marking the ExecPlan **Complete**, verify:
 2026-03-08: Created initial planning-phase ExecPlan from `agent-docs/PLANS.md` template and `agent-docs/agent_context/2026_03_07_data_dict.md`; added concrete dictionary schema proposal, validation design, and non-destructive output behavior for iteration before execution.
 2026-03-08: Updated status to `Execution (In Progress)`, logged implementation outputs, and documented `/usr/local/bin/Rscript` requirement so iterative revisions can continue from a working baseline.
 2026-03-08: Updated `create_data_dictionary.R` to preserve existing dictionary rows and append only net-new variables on default reruns; retained `--overwrite` for full rebuilds.
+2026-03-08: Closed plan with `Status: Complete` after finalizing implementation, validation, and explanatory code comments.

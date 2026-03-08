@@ -1,18 +1,27 @@
 #!/usr/bin/env Rscript
 
+# CLI flags:
+# --check-only  -> run schema checks and summaries; do not write any file
+# --overwrite   -> rebuild dictionary from scratch (replaces existing file)
 args <- commandArgs(trailingOnly = TRUE)
 check_only <- "--check-only" %in% args
 overwrite <- "--overwrite" %in% args
 
+# Remove leading/trailing quotes and whitespace from header names so
+# quoted and unquoted CSV headers are treated as the same schema.
 normalize_names <- function(x) {
   trimws(gsub('^"|"$', "", x))
 }
 
+# Project missingness rule:
+# a value is missing if it is NA or a blank string after trimming.
 is_missing_value <- function(x) {
   x_chr <- as.character(x)
   is.na(x) | trimws(x_chr) == ""
 }
 
+# Infer an analysis-friendly data type.
+# We prioritize variable-name patterns, then fall back to value checks.
 infer_data_type <- function(var_name, values) {
   n <- tolower(var_name)
 
@@ -32,6 +41,8 @@ infer_data_type <- function(var_name, values) {
   "Unknown"
 }
 
+# Infer display unit metadata from variable name patterns.
+# This adds documentation only; it does not transform values.
 infer_unit <- function(var_name) {
   n <- tolower(var_name)
   if (grepl("dollar|amount|approval|chargeoff|guaranteed", n)) return("USD")
@@ -41,17 +52,21 @@ infer_unit <- function(var_name) {
   NA_character_
 }
 
+# Fast header-only read used to verify schema consistency across files.
 read_header <- function(path) {
   header <- names(read.csv(path, nrows = 0, check.names = FALSE))
   normalize_names(header)
 }
 
+# Full data read with normalized column names.
 read_full <- function(path) {
   df <- read.csv(path, check.names = FALSE, stringsAsFactors = FALSE)
   names(df) <- normalize_names(names(df))
   df
 }
 
+# Collect one source family (7_A or 504):
+# 1) list files, 2) verify matching headers, 3) row-bind data.
 collect_source <- function(source_name, dir_path) {
   files <- sort(list.files(dir_path, pattern = "\\.csv$", full.names = TRUE))
   if (!length(files)) {
@@ -84,6 +99,8 @@ collect_source <- function(source_name, dir_path) {
   dfs <- lapply(files, read_full)
   combined <- do.call(rbind, dfs)
 
+  # With current schema checks, every column is present in each file.
+  # We therefore record "first seen" as the first file in sorted order.
   first_seen <- setNames(rep(basename(files[[1]]), length(base_header)), base_header)
 
   list(
@@ -94,6 +111,7 @@ collect_source <- function(source_name, dir_path) {
   )
 }
 
+# Build one dictionary row per variable for the given source family.
 build_dictionary <- function(source_obj) {
   df <- source_obj$data
   n_total <- nrow(df)
@@ -126,6 +144,8 @@ build_dictionary <- function(source_obj) {
   do.call(rbind, rows)
 }
 
+# Default refresh mode:
+# preserve existing curated rows and append only new source+variable pairs.
 merge_append_new <- function(existing, generated) {
   required_keys <- c("source", "variable_name")
   if (!all(required_keys %in% names(existing))) {
@@ -154,6 +174,7 @@ merge_append_new <- function(existing, generated) {
   list(merged = merged, n_new = nrow(new_rows))
 }
 
+# Source directories for this project.
 source_map <- list(
   `7_A` = file.path("0_inputs", "SBA", "7_A"),
   `504` = file.path("0_inputs", "SBA", "504")
@@ -175,6 +196,7 @@ all_dict <- all_dict[order(all_dict$source, all_dict$variable_name), ]
 
 out_path <- file.path("0_inputs", "data_dictionary.csv")
 if (file.exists(out_path) && !overwrite) {
+  # Preserve manual curation: append only net-new variables by key.
   existing_dict <- read.csv(out_path, check.names = FALSE, stringsAsFactors = FALSE)
   merged <- merge_append_new(existing_dict, all_dict)
   if (merged$n_new == 0) {
@@ -187,5 +209,6 @@ if (file.exists(out_path) && !overwrite) {
   quit(save = "no", status = 0)
 }
 
+# First run or explicit --overwrite: write full regenerated dictionary.
 write.csv(all_dict, out_path, row.names = FALSE, na = "")
 cat(sprintf("Wrote %s with %d rows and %d columns.\\n", out_path, nrow(all_dict), ncol(all_dict)))
