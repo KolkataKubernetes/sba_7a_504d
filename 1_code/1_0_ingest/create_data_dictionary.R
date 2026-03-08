@@ -1,3 +1,13 @@
+#///////////////////////////////////////////////////////////////////////////////
+#----                    Combine                   ----
+# File name:  create_data_dictionary.R
+# Author:     Codex
+# Created:    2026-03-08
+# Purpose:    Ingest raw data sources, and identify data fields, formats, units, missingness. 
+# This script is currently calibrated to only ingest the SBA FOIA data, but will later be generalized to ingest other data as well             
+#///////////////////////////////////////////////////////////////////////////////
+
+
 #!/usr/bin/env Rscript
 
 # CLI flags:
