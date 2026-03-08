@@ -40,3 +40,14 @@
 - The census tract ID should be 11 digits.
 - Validation should include a check of how many successful address matches occured, seperately for borrower and banker.
 - I have included a Census API Key in 0_inputs, stored in Markdown form.
+
+## Execution Ambiguities
+1) Use BankCity for Bank Geocoding.
+2) To create the 11 digit census tract, you'll need to combine the following JSON Response Fields from the API:
+  - STATE (e.g. 24)
+  - COUNTY (e.g. 033)
+  - TRACT (e.g. 802405)
+3) Upon batch failure, allow retries per failed batch = 2. Delay by a few seconds between each retry, but otherwise follow best practices upon success. If a batch fails, create a seperate file in the processed_data folder documenting the rows that failed and filling NA with the rows that would have been populated.
+4) Agree that check mode should not hit the API
+5) We only care about the 48 contiguous US states + DC for this analysis.
+6) We can support append/update behavior.
